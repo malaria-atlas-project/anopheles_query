@@ -26,7 +26,7 @@ Session = sessionmaker(bind=engine)
 from sqlalchemy.ext.declarative import declarative_base
 Base = declarative_base(metadata=metadata)
 
-__all__ = ['Anopheline', 'Anopheline2', 'Source', 'Site', 'SiteCoordinates', 'ExpertOpinion', 'SamplePeriod', 'SamplePeriodView','SitePresenceAbsenceView','SamplePeriodPointView','Session', 'World', 'Map', 'Collection', 'Identification','CollectionMethod', 'IdentificationMethod', 'Region',]
+__all__ = ['session', 'Anopheline', 'Anopheline2', 'Source', 'Site', 'SiteCoordinates', 'ExpertOpinion', 'SamplePeriod', 'SamplePeriodView','SitePresenceAbsenceView','SamplePeriodPresenceAbsenceView','Session', 'World', 'Map', 'Collection', 'Identification','CollectionMethod', 'IdentificationMethod', 'Region',]
 
 """
 update vector_anopheline set anopheline2_id = 
@@ -77,6 +77,11 @@ class Site(Base):
     __table__ = Table('site', metadata, Column('geom', Geometry(4326)), autoload=True)
     sample_periods = relation("SamplePeriod", backref="sites")
 
+class SitePoint(Base):
+    __tablename__ = "site_point"
+    site_id = Column(Integer, primary_key=True)
+    geom = Column(Geometry(4326))
+
 class SiteCoordinates(Base):
     """
     Represents a georeferenced site. The geometry returns a multipoint shapely object.
@@ -95,11 +100,10 @@ class ExpertOpinion(Base):
 class SamplePeriodView(Base):
     __table__ = Table('vector_sampleperiod_site_presence_absence', metadata, Column('id', Integer(), primary_key=True), autoload=True)
 
-class SamplePeriodPointView(Base):
-    __tablename__ = "vector_sampleperiod_point_presence_absence"
+class SamplePeriodPresenceAbsenceView(Base):
+    __tablename__ = "vector_sampleperiod_presence_absence"
     id = Column(Integer, primary_key=True)
     site_id = Column(Integer)
-    geom = Column(Geometry(4326))
     anopheline2_id = Column(Integer, ForeignKey('vector_anopheline2.id'))
     anopheline2 = relation(Anopheline2, backref="sampleperiod_points")
     is_present = Column(Boolean)
