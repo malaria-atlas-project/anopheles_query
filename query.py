@@ -73,4 +73,4 @@ def species_query(session, species):
     return mozzie_site_list, eo_geom
 
 def list_species(session):
-    return [(o.id, o.name) for o in session.query(Anopheline)]
+    return [(o.id, o.name) for o in session.query(Anopheline2)]
