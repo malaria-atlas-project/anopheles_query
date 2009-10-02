@@ -26,10 +26,11 @@ Session = sessionmaker(bind=engine)
 from sqlalchemy.ext.declarative import declarative_base
 Base = declarative_base(metadata=metadata)
 
-__all__ = ['Anopheline', 'Anopheline2', 'Source', 'Site', 'SiteCoordinates', 'ExpertOpinion', 'SamplePeriod', 'SamplePeriodView','SitePresenceAbsenceView','SamplePeriodPresenceAbsenceView','Session', 'World', 'Map', 'Collection', 'Identification','CollectionMethod', 'IdentificationMethod', 'Region',]
+__all__ = ['Anopheline', 'Anopheline2', 'Source', 'Site', 'SiteCoordinates', 'ExpertOpinion', 'SamplePeriod', 'SitePresenceAbsenceView','SamplePeriodPresenceAbsenceView','Session', 'World', 'Map', 'Collection', 'Identification','CollectionMethod', 'IdentificationMethod', 'Region',]
 
 """
-update vector_anopheline set anopheline2_id = 
+Views are used extensively here:
+vector_sampleperiod_presence_absence excludes unreliable records and checks for presence / absence.
 """
 
 class Anopheline(Base):
@@ -99,14 +100,19 @@ class ExpertOpinion(Base):
 
 class SamplePeriodView(Base):
     __table__ = Table('vector_sampleperiod_site_presence_absence', metadata, Column('id', Integer(), primary_key=True), autoload=True)
-
 class SamplePeriodPresenceAbsenceView(Base):
     __tablename__ = "vector_sampleperiod_presence_absence"
     id = Column(Integer, primary_key=True)
     site_id = Column(Integer)
+    start_year = Column(Integer)
+    end_year = Column(Integer)
+    start_month = Column(Integer)
+    end_month = Column(Integer)
     anopheline2_id = Column(Integer, ForeignKey('vector_anopheline2.id'))
     anopheline2 = relation(Anopheline2, backref="sampleperiod_points")
     is_present = Column(Boolean)
+    abbreviation = Column(String)
+    source_id = Column(Boolean)
 
 class SitePresenceAbsenceView(Base):
     __table__ = Table('vector_site_presence_absence_coordinates', metadata, Column('site_id', Integer(), primary_key=True), autoload=True)
