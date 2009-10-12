@@ -26,7 +26,7 @@ Session = sessionmaker(bind=engine)
 from sqlalchemy.ext.declarative import declarative_base
 Base = declarative_base(metadata=metadata)
 
-__all__ = ['Anopheline', 'Anopheline2', 'Source', 'Site', 'SiteCoordinates', 'ExpertOpinion', 'SamplePeriod', 'SitePresenceAbsenceView','SamplePeriodPresenceAbsenceView','Session', 'World', 'Map', 'Collection', 'Identification','CollectionMethod', 'IdentificationMethod', 'Region',]
+__all__ = ['Anopheline', 'Anopheline2', 'Source', 'Site', 'SiteCoordinates', 'ExpertOpinion', 'SamplePeriod', 'SitePresenceAbsenceView', 'SpeciesExtentView', 'SamplePeriodPresenceAbsenceView','Session', 'World', 'Map', 'Collection', 'Identification','CollectionMethod', 'IdentificationMethod', 'Region','TagComment',]
 
 """
 Views are used extensively here:
@@ -100,6 +100,7 @@ class ExpertOpinion(Base):
 
 class SamplePeriodView(Base):
     __table__ = Table('vector_sampleperiod_site_presence_absence', metadata, Column('id', Integer(), primary_key=True), autoload=True)
+
 class SamplePeriodPresenceAbsenceView(Base):
     __tablename__ = "vector_sampleperiod_presence_absence"
     id = Column(Integer, primary_key=True)
@@ -116,6 +117,15 @@ class SamplePeriodPresenceAbsenceView(Base):
 
 class SitePresenceAbsenceView(Base):
     __table__ = Table('vector_site_presence_absence_coordinates', metadata, Column('site_id', Integer(), primary_key=True), autoload=True)
+
+class SpeciesExtentView(Base):
+    __tablename__ = "vector_species_extent"
+    minx = Column(Float)
+    miny = Column(Float)
+    maxx = Column(Float)
+    maxy = Column(Float)
+    anopheline2_id = Column(Integer, ForeignKey('vector_anopheline2.id'), primary_key=True)
+    anopheline2 = relation(Anopheline2, backref=backref("data_extent", uselist=False))
 
 class SamplePeriod(Base):
     """
@@ -137,6 +147,7 @@ class SamplePeriod(Base):
     end_month = Column(Integer, nullable=True)
     end_year = Column(Integer, nullable=True)
     sample_aggregate = Column(Integer, nullable=True)
+    tag_recommended_unreliable = Column(Boolean, nullable=True)
 
 class Identification(Base):
     __table__ = Table('vector_identification', metadata, autoload=True)
@@ -150,7 +161,7 @@ class Collection(Base):
     ordinal = Column(Integer)
     count = Column(Integer)
     sample_period_id = Column(Integer, ForeignKey('vector_sampleperiod.id'))
-    sample_period = relation(SamplePeriod, backref="sample")
+    sample_period = relation("SamplePeriod", backref="sample")
 
 class Region(Base):
     __table__ = Table('vector_region', metadata, autoload=True)
@@ -203,6 +214,11 @@ class Map(Base):
     larval_habitat = Column(String)
     region_id = Column(Integer, ForeignKey('vector_region.id'))
     region = relation(Region, backref="vector_map")
+    def get_extent(self):
+        if region:
+            return region
+        else:
+            return self.anopheline2.data_extent
 
 class AnophelineLayer(Base):
     __tablename__ = "vector_anophelinelayer"

@@ -1,6 +1,6 @@
 from sqlalchemy.orm import join
 from sqlalchemy.sql import func, exists, and_, not_
-from models import Anopheline2, SitePoint, SamplePeriodPresenceAbsenceView as SamplePeriodPA
+from models import Anopheline2, SitePoint, SamplePeriodPresenceAbsenceView as SamplePeriodPA, TagComment
 from sqlalchemygeom import *
 from shapely.geometry import MultiPolygon
 
@@ -73,4 +73,4 @@ def species_query(session, species):
     return mozzie_site_list, eo_geom
 
 def list_species(session):
-    return [(o.id, o.name) for o in session.query(Anopheline2)]
+    return [(o.id, o.name) for o in session.query(Anopheline2).join(TagComment).filter(TagComment.to_be_mapped==True)]

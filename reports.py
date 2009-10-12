@@ -93,7 +93,7 @@ reports.append(
 
 reports.append(
     ExcelReport(
-        'Sites and sample periods by 40 DVS',
+        'Sites and sample periods by 41 DVS',
         """
         SELECT  
         (select name from vector_anopheline2 va where va.id = vs.anopheline2_id), 
@@ -103,6 +103,7 @@ reports.append(
         join vector_tagcomment vt 
         on vs.anopheline2_id = vt.anopheline2_id 
         where vt.to_be_mapped 
+        and not vs.tag_recommended_unreliable
         group by vs.anopheline2_id order by 1 
         ; 
         """,
@@ -117,18 +118,18 @@ reports.append(
     """
     select
     a.name,
-    (select count(*) from site where has_geometry and site_id in (select distinct(site_id) from vector_sampleperiod vsp where a.id = vsp.anopheline2_id))as all_sites,
-    (select count(*) from site where area_type = 'point' and has_geometry and site_id in (select distinct(site_id) from vector_sampleperiod vsp where a.id = vsp.anopheline2_id))as point_count,
-    (select count(*) from site where area_type = 'wide area' and has_geometry and site_id in (select distinct(site_id) from vector_sampleperiod vsp where a.id = vsp.anopheline2_id))as wide_area,
-    (select count(*) from site where area_type = 'polygon small' and has_geometry and site_id in (select distinct(site_id) from vector_sampleperiod vsp where a.id = vsp.anopheline2_id))as polygon_small,
-    (select count(*) from site where area_type = 'polygon large' and has_geometry and site_id in (select distinct(site_id) from vector_sampleperiod vsp where a.id = vsp.anopheline2_id))as polygon_large,
-    (select count(*) from site where area_type = 'not specified' and has_geometry and site_id in (select distinct(site_id) from vector_sampleperiod vsp where a.id = vsp.anopheline2_id))as not_specified,
-    (select count(*) from site where (not has_geometry) and site_id in (select distinct(site_id) from vector_sampleperiod vsp where a.id = vsp.anopheline2_id))as all_sites_null_geom,
-    (select count(*) from site where area_type = 'point' and (not has_geometry) and site_id in (select distinct(site_id) from vector_sampleperiod vsp where a.id = vsp.anopheline2_id))as point_count_null_geom,
-    (select count(*) from site where area_type = 'wide area' and (not has_geometry) and site_id in (select distinct(site_id) from vector_sampleperiod vsp where a.id = vsp.anopheline2_id))as wide_area_null_geom,
-    (select count(*) from site where area_type = 'polygon small' and (not has_geometry) and site_id in (select distinct(site_id) from vector_sampleperiod vsp where a.id = vsp.anopheline2_id))as polygon_small_null_geom,
-    (select count(*) from site where area_type = 'polygon large' and (not has_geometry) and site_id in (select distinct(site_id) from vector_sampleperiod vsp where a.id = vsp.anopheline2_id))as polygon_large_null_geom,
-    (select count(*) from site where area_type = 'not specified' and (not has_geometry) and site_id in (select distinct(site_id) from vector_sampleperiod vsp where a.id = vsp.anopheline2_id))as not_specified_null_geom
+    (select count(*) from site where has_geometry and site_id in (select distinct(site_id) from vector_sampleperiod vsp where a.id = vsp.anopheline2_id and not tag_recommended_unreliable))as all_sites,
+    (select count(*) from site where area_type = 'point' and has_geometry and site_id in (select distinct(site_id) from vector_sampleperiod vsp where a.id = vsp.anopheline2_id and not tag_recommended_unreliable))as point_count,
+    (select count(*) from site where area_type = 'wide area' and has_geometry and site_id in (select distinct(site_id) from vector_sampleperiod vsp where a.id = vsp.anopheline2_id and not tag_recommended_unreliable))as wide_area,
+    (select count(*) from site where area_type = 'polygon small' and has_geometry and site_id in (select distinct(site_id) from vector_sampleperiod vsp where a.id = vsp.anopheline2_id and not tag_recommended_unreliable))as polygon_small,
+    (select count(*) from site where area_type = 'polygon large' and has_geometry and site_id in (select distinct(site_id) from vector_sampleperiod vsp where a.id = vsp.anopheline2_id and not tag_recommended_unreliable))as polygon_large,
+    (select count(*) from site where area_type = 'not specified' and has_geometry and site_id in (select distinct(site_id) from vector_sampleperiod vsp where a.id = vsp.anopheline2_id and not tag_recommended_unreliable))as not_specified,
+    (select count(*) from site where (not has_geometry) and site_id in (select distinct(site_id) from vector_sampleperiod vsp where a.id = vsp.anopheline2_id and not tag_recommended_unreliable))as all_sites_null_geom,
+    (select count(*) from site where area_type = 'point' and (not has_geometry) and site_id in (select distinct(site_id) from vector_sampleperiod vsp where a.id = vsp.anopheline2_id and not tag_recommended_unreliable))as point_count_null_geom,
+    (select count(*) from site where area_type = 'wide area' and (not has_geometry) and site_id in (select distinct(site_id) from vector_sampleperiod vsp where a.id = vsp.anopheline2_id and not tag_recommended_unreliable))as wide_area_null_geom,
+    (select count(*) from site where area_type = 'polygon small' and (not has_geometry) and site_id in (select distinct(site_id) from vector_sampleperiod vsp where a.id = vsp.anopheline2_id and not tag_recommended_unreliable))as polygon_small_null_geom,
+    (select count(*) from site where area_type = 'polygon large' and (not has_geometry) and site_id in (select distinct(site_id) from vector_sampleperiod vsp where a.id = vsp.anopheline2_id and not tag_recommended_unreliable))as polygon_large_null_geom,
+    (select count(*) from site where area_type = 'not specified' and (not has_geometry) and site_id in (select distinct(site_id) from vector_sampleperiod vsp where a.id = vsp.anopheline2_id and not tag_recommended_unreliable))as not_specified_null_geom
     from vector_anopheline2 a
     order by a.name asc;
     """,
@@ -139,22 +140,22 @@ reports.append(
 
 reports.append(
     ExcelReport(
-    'Sites and area type by 40 DVS',
+    'Sites and area type by 41 DVS',
     """
     select
     a.name,
-    (select count(*) from site where has_geometry and site_id in (select distinct(site_id) from vector_sampleperiod vsp where a.id = vsp.anopheline2_id)) as all_sites,
-    (select count(*) from site where area_type = 'point' and has_geometry and site_id in (select distinct(site_id) from vector_sampleperiod vsp where a.id = vsp.anopheline2_id))as point_count,
-    (select count(*) from site where area_type = 'wide area' and has_geometry and site_id in (select distinct(site_id) from vector_sampleperiod vsp where a.id = vsp.anopheline2_id))as wide_area,
-    (select count(*) from site where area_type = 'polygon small' and has_geometry and site_id in (select distinct(site_id) from vector_sampleperiod vsp where a.id = vsp.anopheline2_id))as polygon_small,
-    (select count(*) from site where area_type = 'polygon large' and has_geometry and site_id in (select distinct(site_id) from vector_sampleperiod vsp where a.id = vsp.anopheline2_id))as polygon_large,
-    (select count(*) from site where area_type = 'not specified' and has_geometry and site_id in (select distinct(site_id) from vector_sampleperiod vsp where a.id = vsp.anopheline2_id))as not_specified,
-    (select count(*) from site where (not has_geometry) and site_id in (select distinct(site_id) from vector_sampleperiod vsp where a.id = vsp.anopheline2_id))as all_sites_null_geom,
-    (select count(*) from site where area_type = 'point' and (not has_geometry) and site_id in (select distinct(site_id) from vector_sampleperiod vsp where a.id = vsp.anopheline2_id))as point_count_null_geom,
-    (select count(*) from site where area_type = 'wide area' and (not has_geometry) and site_id in (select distinct(site_id) from vector_sampleperiod vsp where a.id = vsp.anopheline2_id))as wide_area_null_geom,
-    (select count(*) from site where area_type = 'polygon small' and (not has_geometry) and site_id in (select distinct(site_id) from vector_sampleperiod vsp where a.id = vsp.anopheline2_id))as polygon_small_null_geom,
-    (select count(*) from site where area_type = 'polygon large' and (not has_geometry) and site_id in (select distinct(site_id) from vector_sampleperiod vsp where a.id = vsp.anopheline2_id))as polygon_large_null_geom,
-    (select count(*) from site where area_type = 'not specified' and (not has_geometry) and site_id in (select distinct(site_id) from vector_sampleperiod vsp where a.id = vsp.anopheline2_id))as not_specified_null_geom
+    (select count(*) from site where has_geometry and site_id in (select distinct(site_id) from vector_sampleperiod vsp where a.id = vsp.anopheline2_id and not tag_recommended_unreliable))as all_sites,
+    (select count(*) from site where area_type = 'point' and has_geometry and site_id in (select distinct(site_id) from vector_sampleperiod vsp where a.id = vsp.anopheline2_id and not tag_recommended_unreliable))as point_count,
+    (select count(*) from site where area_type = 'wide area' and has_geometry and site_id in (select distinct(site_id) from vector_sampleperiod vsp where a.id = vsp.anopheline2_id and not tag_recommended_unreliable))as wide_area,
+    (select count(*) from site where area_type = 'polygon small' and has_geometry and site_id in (select distinct(site_id) from vector_sampleperiod vsp where a.id = vsp.anopheline2_id and not tag_recommended_unreliable))as polygon_small,
+    (select count(*) from site where area_type = 'polygon large' and has_geometry and site_id in (select distinct(site_id) from vector_sampleperiod vsp where a.id = vsp.anopheline2_id and not tag_recommended_unreliable))as polygon_large,
+    (select count(*) from site where area_type = 'not specified' and has_geometry and site_id in (select distinct(site_id) from vector_sampleperiod vsp where a.id = vsp.anopheline2_id and not tag_recommended_unreliable))as not_specified,
+    (select count(*) from site where (not has_geometry) and site_id in (select distinct(site_id) from vector_sampleperiod vsp where a.id = vsp.anopheline2_id and not tag_recommended_unreliable))as all_sites_null_geom,
+    (select count(*) from site where area_type = 'point' and (not has_geometry) and site_id in (select distinct(site_id) from vector_sampleperiod vsp where a.id = vsp.anopheline2_id and not tag_recommended_unreliable))as point_count_null_geom,
+    (select count(*) from site where area_type = 'wide area' and (not has_geometry) and site_id in (select distinct(site_id) from vector_sampleperiod vsp where a.id = vsp.anopheline2_id and not tag_recommended_unreliable))as wide_area_null_geom,
+    (select count(*) from site where area_type = 'polygon small' and (not has_geometry) and site_id in (select distinct(site_id) from vector_sampleperiod vsp where a.id = vsp.anopheline2_id and not tag_recommended_unreliable))as polygon_small_null_geom,
+    (select count(*) from site where area_type = 'polygon large' and (not has_geometry) and site_id in (select distinct(site_id) from vector_sampleperiod vsp where a.id = vsp.anopheline2_id and not tag_recommended_unreliable))as polygon_large_null_geom,
+    (select count(*) from site where area_type = 'not specified' and (not has_geometry) and site_id in (select distinct(site_id) from vector_sampleperiod vsp where a.id = vsp.anopheline2_id and not tag_recommended_unreliable))as not_specified_null_geom
     from vector_anopheline2 a
     join vector_tagcomment vt
     on vt.anopheline2_id = a.id
@@ -204,12 +205,12 @@ reports.append(
     ExcelReport(
         'Combinations of species',
         """
-select va.abbreviation, vs.abbreviation, va2.abbreviation, ss.complex, count from
-(select anopheline_id, anopheline2_id, subspecies_id, complex, count(*) from vector_sampleperiod group by 1,2,3,4) as ss
-join vector_anopheline va on ss.anopheline_id = va.id
-join vector_subspecies vs on ss.subspecies_id = vs.id
-left join vector_anopheline2 va2 on va2.id = ss.anopheline_id
-order by 1, 2, 3;
+        select va.abbreviation, vs.abbreviation, va2.abbreviation, ss.complex, count from
+        (select anopheline_id, anopheline2_id, subspecies_id, complex, count(*) from vector_sampleperiod group by 1,2,3,4) as ss
+        join vector_anopheline va on ss.anopheline_id = va.id
+        join vector_subspecies vs on ss.subspecies_id = vs.id
+        left join vector_anopheline2 va2 on va2.id = ss.anopheline2_id
+        order by 1, 2, 3
         """,
         headers = ["Species 1", "Species 2", "Anopheline2", "Complex", "Count",],
         ))
