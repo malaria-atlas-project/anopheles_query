@@ -26,26 +26,12 @@ Session = sessionmaker(bind=engine)
 from sqlalchemy.ext.declarative import declarative_base
 Base = declarative_base(metadata=metadata)
 
-__all__ = ['Anopheline', 'Anopheline2', 'Source', 'Site', 'SiteCoordinates', 'ExpertOpinion', 'SamplePeriod', 'SitePresenceAbsenceView', 'SpeciesExtentView', 'SamplePeriodPresenceAbsenceView','Session', 'World', 'Map', 'Collection', 'Identification','CollectionMethod', 'IdentificationMethod', 'Region','TagComment',]
+__all__ = ['Anopheline2', 'Source', 'Site', 'SiteCoordinates', 'ExpertOpinion', 'SamplePeriod', 'SitePresenceAbsenceView', 'SpeciesExtentView', 'SamplePeriodPresenceAbsenceView','Session', 'World', 'Map', 'Collection', 'Identification','CollectionMethod', 'IdentificationMethod', 'Region','TagComment',]
 
 """
 Views are used extensively here:
 vector_sampleperiod_presence_absence excludes unreliable records and checks for presence / absence.
 """
-
-class Anopheline(Base):
-    """
-    """
-    __tablename__ = "vector_anopheline"
-    id = Column(Integer, primary_key=True)
-    name = Column(String)
-    abbreviation = Column(String)
-    sub_genus = Column(String)
-    species = Column(String)
-    author = Column(String)
-    is_complex  = Column(Boolean)
-    def __repr__(self):
-        return self.name
 
 class Anopheline2(Base):
     """
@@ -97,6 +83,7 @@ class ExpertOpinion(Base):
     geom = Column(Geometry(4326))
     anopheline2_id = Column(Integer, ForeignKey('vector_anopheline2.id'))
     anopheline2 = relation(Anopheline2, backref="expert_opinion")
+    reference = Column(String)
 
 class SamplePeriodView(Base):
     __table__ = Table('vector_sampleperiod_site_presence_absence', metadata, Column('id', Integer(), primary_key=True), autoload=True)
@@ -138,8 +125,6 @@ class SamplePeriod(Base):
     site_id = Column(Integer, ForeignKey('site.site_id'))
     source_id = Column(Integer, ForeignKey('source.enl_id'))
     complex = Column(String)
-    anopheline_id = Column(Integer, ForeignKey('vector_anopheline.id'))
-    anopheline = relation(Anopheline, backref="sample_period")
     anopheline2_id = Column(Integer, ForeignKey('vector_anopheline2.id'))
     anopheline2 = relation(Anopheline2, backref="sample_period")
     start_month = Column(Integer, nullable=True)
@@ -192,6 +177,7 @@ class Region(Base):
         self.miny = self.miny - (dY * proportion)
         self.maxy = self.maxy + (dY * proportion)
 
+#FIXME: keep data and display separate!
 class LayerStyle(Base):
     __tablename__ = "vector_layerstyle"
     id = Column(Integer, primary_key=True)

@@ -1,6 +1,6 @@
 from sqlalchemy.orm import join
 from sqlalchemy.sql import func, exists, and_, not_
-from models import Anopheline, Site, SamplePeriod, Session
+from models import Session
 from sqlalchemygeom import *
 
 session = Session(autocommit=True)
@@ -34,22 +34,6 @@ class ExcelReport(object):
         self.headers = headers
         self.totals = totals
 
-sampleperiod_subq = session.query(
-    SamplePeriod.anopheline2_id,
-    func.count(func.distinct(SamplePeriod.site_id)).label('site_count'),
-    func.count('*').label('sampleperiod_count')
-    ).group_by(SamplePeriod.anopheline2_id).subquery()
-
-point_subq = session.query(
-    SamplePeriod.anopheline2_id,
-    func.count('*').label('count')
-    ).filter(Site.area_type=='point').filter(exists().where(SamplePeriod.site_id==Site.site_id)).filter(Anopheline.id==SamplePeriod.anopheline2_id)
-
-q = session.query(Anopheline.name,
-    func.coalesce(sampleperiod_subq.c.site_count,0),
-    func.coalesce(sampleperiod_subq.c.sampleperiod_count, 0)
-    ).order_by(Anopheline.name.desc())
-
 #reports.append(
 #    ExcelReport(
 #        'Sundaicus',
@@ -82,12 +66,64 @@ q = session.query(Anopheline.name,
 
 reports.append(
     ExcelReport(
+        'Lesterii',
+        """
+        SELECT source_id, site_id, id from vector_sampleperiod  where notes ilike '%lesteri%' order by 1,2,3;
+        """,
+        headers = ["source_id", "site_id", "sampleperiod_id",]
+    )
+)
+reports.append(
+    ExcelReport(
         'Sites and sample periods by all species',
         """
         select (select abbreviation from vector_anopheline2 va where va.id = vector_sampleperiod.anopheline2_id),count(distinct(site_id)), count(*) from vector_sampleperiod where anopheline2_id != 8 group by anopheline2_id order by 1
         """,
         headers = ["", "Unique sites", "Temporally unique collections",],
         totals = [1,2]
+    )
+)
+
+reports.append(
+    ExcelReport(
+        'Polygonal sites',
+        """
+        SELECT distinct vsp.source_id, site.site_id, site.full_name, site.area_type 
+        from site 
+        join vector_sampleperiod vsp
+        on site.site_id = vsp.site_id
+        where area_type in ('polygon', 'polygon large', 'polygon large')
+        ;
+        """,
+
+        headers = ["source_id", "site_id", "full_name ", "area_type",]
+    )
+)
+
+reports.append(
+    ExcelReport(
+        'Non-georeferenced sites',
+        """
+        SELECT distinct vsp.source_id, site.site_id, site.full_name, site.area_type 
+        from site 
+        join vector_sampleperiod vsp
+        on site.site_id = vsp.site_id
+        where not exists(select * from site_coordinates sc where sc.site_id = site.site_id)
+        ;
+        """,
+
+        headers = ["source_id", "site_id", "full_name ", "area_type",]
+    )
+)
+
+reports.append(
+    ExcelReport(
+        'Geopositions',
+        """
+        select * from site_geopositions
+        """,
+
+        headers = ["vector_source_id", "pr_source_id", "Country ", "Admin1", "Admin2", "Site", "Lat", "Long", "Latlong_source", "Site_notes", " AREA_TYPE", " Site_ID", "Good guess", " Rough guess",]
     )
 )
 
