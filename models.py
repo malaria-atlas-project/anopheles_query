@@ -47,12 +47,13 @@ class Anopheline(Base):
     def __repr__(self):
         return self.name
 
+
 class Anopheline2(Base):
     """
     """
     __table__ = Table('vector_anopheline2', metadata, autoload=True)
     def __repr__(self):
-        return self.name
+        return self.get_scientific_name()
     def get_scientific_name(self):
         return self.scientific_name.replace('<em>', '<i>').replace('</em>', '</i>')
 
