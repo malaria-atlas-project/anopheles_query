@@ -1,4 +1,4 @@
-# Copyright (C) 2009  William Temperley
+# cOPYRIGHT (c) 2009  wILLIAM tEMPERLEY
 # 
 # This program is free software: you can redistribute it and/or modify
 # it under the terms of the GNU General Public License as published by
@@ -26,7 +26,7 @@ Session = sessionmaker(bind=engine)
 from sqlalchemy.ext.declarative import declarative_base
 Base = declarative_base(metadata=metadata)
 
-__all__ = ['Anopheline2', 'Source', 'Site', 'SiteCoordinates', 'ExpertOpinion', 'SamplePeriod', 'SpeciesExtentView', 'SamplePeriodPresenceAbsenceView','Session', 'World', 'Map', 'Collection', 'Identification','CollectionMethod', 'IdentificationMethod', 'Region','TagComment',]
+__all__ = ['Anopheline2', 'Source', 'Site', 'SiteCoordinates', 'ExpertOpinion', 'SamplePeriod', 'SamplePeriodPresenceAbsenceView','Session', 'World', 'Collection', 'Identification','CollectionMethod', 'IdentificationMethod', 'TagComment',]
 
 """
 Views are used extensively here:
@@ -102,15 +102,6 @@ class SamplePeriodPresenceAbsenceView(Base):
     abbreviation = Column(String)
     source_id = Column(Boolean)
 
-class SpeciesExtentView(Base):
-    __tablename__ = "vector_species_extent"
-    minx = Column(Float)
-    miny = Column(Float)
-    maxx = Column(Float)
-    maxy = Column(Float)
-    anopheline2_id = Column(Integer, ForeignKey('vector_anopheline2.id'), primary_key=True)
-    anopheline2 = relation(Anopheline2, backref=backref("data_extent", uselist=False))
-
 class SamplePeriod(Base):
     """
     Represents a vector sample at a location. May have a specified time period.
@@ -144,35 +135,6 @@ class Collection(Base):
     sample_period_id = Column(Integer, ForeignKey('vector_sampleperiod.id'))
     sample_period = relation("SamplePeriod", backref="sample")
 
-class Region(Base):
-    __table__ = Table('vector_region', metadata, autoload=True)
-
-    def is_valid(self):
-        if self.minx is None or self.miny is None or self.maxx is None or self.maxy is None:
-            return False
-        if self.minx > self.maxx and self.miny > self.maxy:
-            return False
-        return True
-             
-    def update(self, new_region):
-        #look out for nulls in update
-        if not self.minx:
-            self.minx = new_region.minx
-        if not self.miny:
-            self.miny = new_region.miny
-        self.minx = min(self.minx, new_region.minx) or self.minx
-        self.miny = min(self.miny, new_region.miny) or self.miny
-        self.maxx = max(self.maxx, new_region.maxx)
-        self.maxy = max(self.maxy, new_region.maxy)
-        
-    def expand(self, proportion):
-        dX = self.maxx - self.minx
-        dY = self.maxy - self.miny
-        self.minx = self.minx - (dX * proportion)
-        self.maxx = self.maxx + (dX * proportion)
-        self.miny = self.miny - (dY * proportion)
-        self.maxy = self.maxy + (dY * proportion)
-
 #FIXME: keep data and display separate!
 class LayerStyle(Base):
     __tablename__ = "vector_layerstyle"
@@ -185,37 +147,6 @@ class LayerStyle(Base):
     def to_rgba(self, key):
         hex = self.__getattribute__(key)
         return float(int(hex[1:3], 16))/255,float(int(hex[3:5], 16))/255,float(int(hex[5:7], 16))/255,self.opacity
-
-class Map(Base):
-    __tablename__ = "vector_map"
-    id = Column(Integer, primary_key=True)
-    name = Column(String)
-    anopheline2_id = Column(Integer, ForeignKey('vector_anopheline2.id'))
-    anopheline2 = relation("Anopheline2")
-    map_text = Column(String)
-    larval_habitat = Column(String)
-    region_id = Column(Integer, ForeignKey('vector_region.id'))
-    region = relation(Region, backref="vector_map")
-    def get_extent(self):
-        if region:
-            return region
-        else:
-            return self.anopheline2.data_extent
-
-class AnophelineLayer(Base):
-    __tablename__ = "vector_anophelinelayer"
-    id = Column(Integer, primary_key=True)
-    ordinal = Column(Integer)
-    map_id = Column(Integer, ForeignKey('vector_map.id'))
-    map = relation(Map, backref=backref("anopheline_layers", order_by=ordinal))
-    style_id = Column(Integer, ForeignKey('vector_layerstyle.id'))
-    style = relation(LayerStyle, backref="anopheline_layer")
-    layer_type = Column(String)
-    is_presence = Column(Boolean, nullable=True)
-    anopheline2_id = Column(Integer, ForeignKey('vector_anopheline2.id'))
-    anopheline2 = relation(Anopheline2, backref="anopheline_layer")
-    class Meta:
-        ordering = ('ordinal',)
 
 class World(Base):
     """
