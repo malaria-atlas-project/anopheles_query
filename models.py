@@ -26,7 +26,7 @@ Session = sessionmaker(bind=engine)
 from sqlalchemy.ext.declarative import declarative_base
 Base = declarative_base(metadata=metadata)
 
-__all__ = ['Anopheline2', 'Source', 'Site', 'SiteCoordinates', 'ExpertOpinion', 'SamplePeriod', 'SitePresenceAbsenceView', 'SpeciesExtentView', 'SamplePeriodPresenceAbsenceView','Session', 'World', 'Map', 'Collection', 'Identification','CollectionMethod', 'IdentificationMethod', 'Region','TagComment',]
+__all__ = ['Anopheline2', 'Source', 'Site', 'SiteCoordinates', 'ExpertOpinion', 'SamplePeriod', 'SpeciesExtentView', 'SamplePeriodPresenceAbsenceView','Session', 'World', 'Map', 'Collection', 'Identification','CollectionMethod', 'IdentificationMethod', 'Region','TagComment',]
 
 """
 Views are used extensively here:
@@ -38,7 +38,7 @@ class Anopheline2(Base):
     """
     __table__ = Table('vector_anopheline2', metadata, autoload=True)
     def __repr__(self):
-        return self.name
+        return self.get_scientific_name()
     def get_scientific_name(self):
         return self.scientific_name.replace('<em>', '<i>').replace('</em>', '</i>')
 
@@ -61,7 +61,7 @@ class Site(Base):
     Represents a georeferenced site. The geometry returns a multipoint shapely object.
     The sample_periods property returns all sample periods linked to the site, aggregated across all studies.
     """
-    __table__ = Table('site', metadata, Column('geom', Geometry(4326)), autoload=True)
+    __table__ = Table('vector_site', metadata, Column('geom', Geometry(4326)), autoload=True)
     sample_periods = relation("SamplePeriod", backref="sites")
 
 class SitePoint(Base):
@@ -74,7 +74,7 @@ class SiteCoordinates(Base):
     Represents a georeferenced site. The geometry returns a multipoint shapely object.
     The sample_periods property returns all sample periods linked to the site, aggregated across all studies.
     """
-    __table__ = Table('site_coordinates', metadata, Column('geom', Geometry(4326)), autoload=True)
+    __table__ = Table('vector_site_coordinates', metadata, Column('geom', Geometry(4326)), autoload=True)
     site = relation("Site", backref="site_coordinates")
 
 class ExpertOpinion(Base):
@@ -85,10 +85,10 @@ class ExpertOpinion(Base):
     anopheline2 = relation(Anopheline2, backref="expert_opinion")
     reference = Column(String)
 
-class SamplePeriodView(Base):
-    __table__ = Table('vector_sampleperiod_site_presence_absence', metadata, Column('id', Integer(), primary_key=True), autoload=True)
-
 class SamplePeriodPresenceAbsenceView(Base):
+    """
+    Important view - used for modelling. Only includes DVS and reliable data.
+    """
     __tablename__ = "vector_sampleperiod_presence_absence"
     id = Column(Integer, primary_key=True)
     site_id = Column(Integer)
@@ -101,9 +101,6 @@ class SamplePeriodPresenceAbsenceView(Base):
     is_present = Column(Boolean)
     abbreviation = Column(String)
     source_id = Column(Boolean)
-
-class SitePresenceAbsenceView(Base):
-    __table__ = Table('vector_site_presence_absence_coordinates', metadata, Column('site_id', Integer(), primary_key=True), autoload=True)
 
 class SpeciesExtentView(Base):
     __tablename__ = "vector_species_extent"
@@ -119,10 +116,9 @@ class SamplePeriod(Base):
     Represents a vector sample at a location. May have a specified time period.
     vector_site_sample_period is a view which aggregates samples across studies. 
     """
-    #NB - A view 
     __tablename__ = "vector_sampleperiod"
     id = Column(Integer, primary_key=True)
-    site_id = Column(Integer, ForeignKey('site.site_id'))
+    site_id = Column(Integer, ForeignKey('vector_site.site_id'))
     source_id = Column(Integer, ForeignKey('source.enl_id'))
     complex = Column(String)
     anopheline2_id = Column(Integer, ForeignKey('vector_anopheline2.id'))
