@@ -65,7 +65,7 @@ class Site(Base):
     sample_periods = relation("SamplePeriod", backref="sites")
 
 class SitePoint(Base):
-    __tablename__ = "site_point"
+    __tablename__ = "vector_site_point"
     site_id = Column(Integer, primary_key=True)
     geom = Column(Geometry(4326))
 
@@ -110,7 +110,7 @@ class SamplePeriod(Base):
     __tablename__ = "vector_sampleperiod"
     id = Column(Integer, primary_key=True)
     site_id = Column(Integer, ForeignKey('vector_site.site_id'))
-    source_id = Column(Integer, ForeignKey('source.enl_id'))
+    source_id = Column(Integer, ForeignKey('source.id'))
     complex = Column(String)
     anopheline2_id = Column(Integer, ForeignKey('vector_anopheline2.id'))
     anopheline2 = relation(Anopheline2, backref="sample_period")
